@@ -1,30 +1,29 @@
 #include <cstdio>
-#include <iostream>
 
-void sail( int );
-bool IsValid();
-bool IsSafe();
-bool IsBack();
-void move ( int , int );
-void mark();
+int sail ( int*, int, int* );
+bool IsValid ( int* );
+bool IsSafe ( int* );
+bool IsFoward ( int*, int* );
+void move ( int*, int , int );
+void mark ( int*, int* );
 
-int east[4] = { 1, 1, 1, 1 };
-int markTable[2][2][2][2]; 
+
 char table[4] = { 'H', 'W', 'S', 'V' };
 bool done = false;
 int solu[100];
 
 int main() {
-	for ( int i = 0; i != sizeof(markTable); ++i ) **** ( markTable + i ) = 0;
-	****markTable = 1; 
-	sail( 0 );
+	int east[4] = { 1, 1, 1, 1 };
+	int markTable[16]; 
+	for ( int i = 0; i != 16; ++i ) markTable[i] = 1; 
+	sail( east, 0, markTable );
 	return 0;
 }
 
-void sail( int step ) {
-	if ( done == true ) return;
-	if ( !east[0] && !east[1] &&
-		 !east[3] && !east[4] ) {
+int sail( int* east, int step, int* markTable ) {
+	if ( done ) return 0;
+	else if ( !east[0] && !east[1] &&
+		 !east[2] && !east[3] ) {
 		for ( int i = 0; i != step; ++i ) {
 			if ( solu[i] )
 				printf ( "%c%c%c", table[0], table[solu[i]], ' ' );
@@ -32,33 +31,31 @@ void sail( int step ) {
 				printf ( "%c%c", table[0], ' ' );
 		}
 		done = true;
-		scanf ( "\n" );
-		return;
+		printf ( "\n" );
+		return 0;
 	}
-	for ( int i = 0; i != 4; ++i ) {
-		int oldEast[4], oldMark[2][2][2][2], newStep = step + 1;
-		for ( int i = 0; i != 4; ++i ) 
-			oldEast[i] = east[i];
-		for ( int i = 0; i != sizeof(oldMark); ++i ) 
-			**** ( oldMark + i ) = **** ( markTable + i ); 
-		move ( i, step ), mark ();
-		printf ( "%d\n", step );
-		if ( !IsValid() ) { printf ( "%s\n", "Invalid"); continue; }
-		if ( !IsSafe() ) { printf ( "%s\n", "Unsafe"); continue; }
-		if ( IsBack() ) { printf ( "%s\n", "Back"); continue; }
+	else if ( !done ) {
+		for ( int i = 0; i != 4; ++i ) {
+			if ( done ) continue;
+			int newEast[4], newMark[16], newStep = step + 1;
+			for ( int i = 0; i != 4; ++i ) 
+				newEast[i] = east[i];
+			for ( int i = 0; i != 16; ++i ) 
+				* ( newMark + i ) = * ( markTable + i ); 
+			move ( newEast, i, step ), mark ( newMark, newEast );
+			if ( !IsValid ( newEast ) ) continue; 
+			if ( !IsSafe ( newEast ) ) continue; 
+			if ( !IsFoward ( newMark, newEast ) ) continue; 
 
-		sail ( newStep ), printf ( "%d%c\n", step, ' ' );
-		for ( int i = 0; i != 4; ++i ) 
-			east[i] = oldEast[i];
-		for ( int i = 0; i != sizeof(oldMark); ++i ) 
-			**** ( markTable + i ) = **** ( oldMark + i );
+			sail ( newEast, newStep, newMark );
 
+		}
 	}
 
 }
 
-void move ( int i, int step ) {
-	if ( step % 1 ) {
+void move ( int* east, int i, int step ) {
+	if ( step % 2 ) {
 			solu[step] = i;
 			east[0] = 1; east[i] = 1;
 	}
@@ -68,9 +65,14 @@ void move ( int i, int step ) {
 	}
 }
 
-void mark() { ++markTable[east[0]][east[1]][east[2]][east[3]]; }
+void mark ( int* markTable, int* east ) { 
+	int rank = 0;
+	for ( int i = 0; i != 4; ++i )
+		rank += ( ( east[i] ) << ( 3 - i ) );
+	--markTable[rank]; 
+}
 
-bool IsValid() {
+bool IsValid ( int* east ) {
 	for ( int i = 0; i != 4; ++i ) 
 		if ( ( east[i] > 1 || east[i] < 0 ) ||
 			 ( east[i] > 1 || east[i] < 0 ) )
@@ -78,7 +80,7 @@ bool IsValid() {
 	return true;
 }
 
-bool IsSafe() {
+bool IsSafe ( int* east ) {
 	for ( int i = 1; i != 3; ++i ) {
 		if ( !east[0] && east[i] && east[i + 1] ) return false;
 		else if ( east[0] && !east[i] && !east[i + 1] )
@@ -87,7 +89,9 @@ bool IsSafe() {
 	return true;
 }
 
-bool IsBack() {
-	std::cout << markTable[east[0]][east[1]][east[2]][east[3]] << std::endl;
-	return ( markTable[east[0]][east[1]][east[2]][east[3]] > 1 );
+bool IsFoward ( int* markTable, int* east ) {
+	int rank = 0;
+	for ( int i = 0; i != 4; ++i )
+		rank += ( ( east[i] ) << ( 3 - i ) );
+	return !markTable[rank] ;
 }
