@@ -211,7 +211,7 @@ std::string A::say() {
 		s += " ";
 		for ( int i = 1; i != item.size(); ++i )
 			s += item[i];
-		s += ",please.";
+		s += ", please.";
 		
 	}
 
@@ -312,7 +312,7 @@ std::string C::say() {
 		for ( int i = 1; i != item.size(); ++i )
 			s += item[i];
 		for ( int i = item[0] - '0'; i != 1; --i )
-			s += ",and one more";
+			s += ", and one more";
 		s += ".";
 	}
 

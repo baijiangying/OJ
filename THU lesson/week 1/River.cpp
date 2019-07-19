@@ -1,4 +1,5 @@
 #include <cstdio>
+#include <iostream>
 
 void sail( int );
 bool IsValid();
@@ -41,7 +42,7 @@ void sail( int step ) {
 		for ( int i = 0; i != sizeof(oldMark); ++i ) 
 			**** ( oldMark + i ) = **** ( markTable + i ); 
 		move ( i, step ), mark ();
-		printf ( "%d%c\n", step, ' ' );
+		printf ( "%d\n", step );
 		if ( !IsValid() ) { printf ( "%s\n", "Invalid"); continue; }
 		if ( !IsSafe() ) { printf ( "%s\n", "Unsafe"); continue; }
 		if ( IsBack() ) { printf ( "%s\n", "Back"); continue; }
@@ -87,5 +88,6 @@ bool IsSafe() {
 }
 
 bool IsBack() {
+	std::cout << markTable[east[0]][east[1]][east[2]][east[3]] << std::endl;
 	return ( markTable[east[0]][east[1]][east[2]][east[3]] > 1 );
 }
