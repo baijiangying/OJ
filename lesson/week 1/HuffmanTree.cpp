@@ -2,8 +2,10 @@
 #include <stack>
 #include <queue>
 
+void quickSort ( int* , int, int );
+int getPivot ( int* path, int lo, int hi );
+void sort ( std::stack<int>& );
 
-std::stack<int> sort ( std::stack<int> );
 int huffmanLength ( std::stack<int>, int, int );
 
 int main() {
@@ -22,12 +24,12 @@ int main() {
 }
 
 int huffmanLength ( std::stack<int> s, int n, int k ) {
-	int length = 0;
-	s = sort ( s );
+	long long length = 0;
+	sort ( s );
 	std::queue<int> q;
 	int a = ( n - 1 ) % ( k - 1 );
 	if ( a ) {
-		int sum = 0;
+		long long sum = 0;
 		for ( int i = 0; i != a + 1; ++i ) {
 			sum += s.top();
 			//std::cout << "pop " << s.top() << std::endl;
@@ -62,22 +64,36 @@ int huffmanLength ( std::stack<int> s, int n, int k ) {
 	return length;
 }
 
-std::stack<int> sort ( std::stack<int> r ) {
-	std::stack<int> s;
+void sort ( std::stack<int>& r ) {
+	int size = r.size();
+	int* path = new int[r.size()];
+	for ( int i = 0; r.size(); ++i ) {
+		path[i] = r.top();
+		r.pop();
+	}
+	quickSort ( path, 0, size );
+	
+	while ( 0 < size-- ) r.push ( path[size] );
+}
 
-	while ( !r.empty() ) {
-		if ( s.empty() || s.top() <= r.top() )
-			s.push ( r.top() ), r.pop();
-		else {
-			int t = r.top();
-			r.pop();
-			r.push ( s.top() ), s.pop();
-			r.push ( t );
+void quickSort ( int* path, int lo, int hi ) {
+	if ( lo + 1 < hi ) {
+		int pivot = getPivot ( path, lo, hi );
+		quickSort ( path, lo, pivot );
+		quickSort ( path, pivot + 1, hi );
+	}
+}	
+
+int getPivot ( int* path, int lo, int hi ) {
+	int pivot = lo;
+	for ( int i = lo; i != hi ; ++i ) {
+		if ( path[i] < path[pivot] ) {
+			std::swap ( path[pivot], path[i] );
+			std::swap ( path[++pivot], path[i] );
 		}
 	}
-	while ( !s.empty() ) {
-		r.push ( s.top() );
-		s.pop();
-	}
-	return r;
+
+
+
+	return pivot;
 }
