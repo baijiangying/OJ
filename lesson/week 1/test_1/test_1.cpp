@@ -33,17 +33,15 @@ void sequece( int* a, int n ) {
 	q.init();
 	for ( int i = 0; i < n; ) {
 		int max = maxElem[i];
-		std::cout << "max " << max << std::endl;
 		if ( q.size() && ( max <= q.front() || max <= q.rear() ) ) {
 			if ( q.front() < q.rear() )
-				result[rank] = q.dequeue ( false ), std::cout << "dequeue " << result[rank] << std::endl, ++rank;
+				result[rank] = q.dequeue ( false ), ++rank;
 			else
-				result[rank] = q.dequeue ( true ), std::cout << "dequeue " << result[rank] << std::endl, ++rank;
+				result[rank] = q.dequeue ( true ), ++rank;
 		} 
 		else {
 			while ( a[i] != max) {
 				q.enqueue ( a[i] );
-				std::cout << "enqueue " << a[i] << std::endl;
 				++i;
 			}
 			result[rank] = max, ++rank, ++i;
@@ -53,9 +51,9 @@ void sequece( int* a, int n ) {
 	}
 	while ( q.size() ) {
 		if ( q.front() < q.rear() )
-			result[rank] = q.dequeue ( false ), std::cout << "dequeue " << result[rank] << std::endl, ++rank;
+			result[rank] = q.dequeue ( false ), ++rank;
 		else
-			result[rank] = q.dequeue ( true ), std::cout << "dequeue " << result[rank] << std::endl, ++rank;
+			result[rank] = q.dequeue ( true ), ++rank;
 	} 
 	for ( int i = 0; i != n; ++i ) 
 		* ( a + i ) = result[i];
