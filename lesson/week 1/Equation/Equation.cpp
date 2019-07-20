@@ -4,6 +4,7 @@
 #include "Union-Find.h"
 
 int main() {
+	std::ios::sync_with_stdio ( false );
 	int t, n, m;
 	std::cin >> t;
 	bool* result = new bool[t];

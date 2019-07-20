@@ -9,12 +9,10 @@ struct node {
 };
 
 class UnionFind {
-// private:
-// 	int _size;
-// 	node* _elem;
-public:
+private:
 	int _size;
 	node* _elem;
+public:
 	UnionFind ( int size ) { 
 		_elem = new node[size]; 
 		for (int i = 0; i != size; ++i ) _elem[i].parent = i; 
