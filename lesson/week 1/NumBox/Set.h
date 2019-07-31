@@ -26,7 +26,6 @@ Set::Set ( long long c ) {
 	for ( long long i = 0; i != 18; ++i ) {
 		if ( ( _capacity = prime[i] ) > ( c << 1 ) ) break;
 	}
-	_capacity = 997433;
 	_elem = new long long[_capacity];
 	for ( long long i = 0; i != _capacity; ++i ) 
 		_elem[i] = -2;
@@ -34,7 +33,7 @@ Set::Set ( long long c ) {
 
 inline long long Set::hash ( long long key, int i ) {
 	long long r = ( ( ( 2 * key + 123433 ) % _capacity ) +
-					i * rehash ( key ) ) % _capacity;
+					i ) % _capacity;
 	return r;
 }
 
