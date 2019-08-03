@@ -1,53 +1,39 @@
 #include <cstdio>
 #include <iostream>
-#include <stdlib.h>
 
-int divide ( int*, int, int );
+int solve ( int*, int, int );
+bool check ( int*, int, int, long long );
 
 int main() {
-	srand( time ( nullptr ) );
-	while (1){
-	int n = rand() % 3000, m = rand() % 3000;
-	printf ( "%d%c%d%c", n, ' ', m, ' ' );
-	//scanf ( "%d%d", &n, &m );
+	int n, m;
+	scanf ( "%d%d", &n, &m );
 	int* a = new int[n];
-	for ( int i = 0; i != n; ++i ) a[i] = rand() % 10000;
-	printf ( "%d\n", divide ( a, n, m ) );
-	delete a;
-	}
+	for ( int i = 0; i != n; ++i )
+		scanf ( "%d", &a[i] );
+
+	printf ( "%d\n", solve ( a, n, m ) );
+	return 0;
 }
 
-int divide ( int* a, int n, int m ) {
-	std::cout << "-------";
-	long long max = 0, min = 0;
-	for ( int i = 0; i != n; ++i ) 
-		max += a[i];
-	while ( min < max ) {
-		long long mid = ( min + max ) >> 1;
-		long long sum = 0, g = 0;
-		for ( int i = 0; i != n; ++i ) {
-			sum += a[i];
-			if ( sum > mid )
-				++g, sum = a[i];
-		}
-		if ( ++g <= m ) max = mid;
-		else if ( ++g > m ) min = mid + 1;
+int solve ( int* a, int n, int m ) {
+	long long lo = 0, hi = 0;
+	for ( int i = 0; i != n; ++i ) hi += a[i];
+	long long mi = ( lo + hi ) >> 1;
+	while ( lo < hi ) {
+		check ( a, n, m, mi ) ? hi = mi : lo = mi + 1;
+		mi = ( lo + hi ) >> 1;
 	}
-	std::cout << "-------";
-	int g = 0, rank = 0;
-	long long sum = 0, result = 0;
-	for ( ; g != m - 1; ++rank ) {
-		sum += a[rank];
-		if ( sum > min ) {
-			if ( sum - a[rank] > result ) result = sum - a[rank];
-			sum = a[rank], ++g;
-		}
+	return hi;
+}
+
+bool check ( int* a, int n, int m, long long mi ) {
+	long long sum = 0, g = 0;
+	for ( int i = 0; i != n; ++i ) {
+		if ( a[i] > mi ) 
+			return false;
+		sum += a[i];
+		if ( sum > mi )
+			++g, sum = a[i];
 	}
-	sum = 0;
-	while ( rank != n ) {
-		sum += a[rank++];
-	}
-	if ( sum > result ) result = sum;
-	std::cout << "-------";
-	return result;
+	return ( ++g <= m );
 }

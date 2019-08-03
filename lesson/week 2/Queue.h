@@ -21,14 +21,24 @@ public:
 	~Queue();
 	int size() { return _size; }
 	void enqueue ( const T& e );
-	T dequeue ( const bool& );
+	T dequeue ( const bool& front = true );
 	T front();
 	T rear();
+	void print();
 };
 
 template <typename T> Queue<T>::~Queue() {
 	while ( 0 < _size-- ) dequeue ( true );
 	delete head, delete trail;
+}
+
+template <typename T> void Queue<T>::print() {
+	Node<T>* p = head;
+	while ( p != trail -> pred ) {
+		p = p -> succ;
+		std::cout << p -> data << " ";
+	}
+	//std::cout << std::endl;
 }
 
 template <typename T> void Queue<T>::init() {
@@ -46,7 +56,7 @@ template <typename T> void Queue<T>::enqueue ( const T& e ) {
 	++_size;
 }
 
-template <typename T> T Queue<T>::dequeue (  const bool& front = true ) {
+template <typename T> T Queue<T>::dequeue ( const bool& front ) {
 	if ( _size ) {
 		if ( front ) {
 			T e = head -> succ -> data;
