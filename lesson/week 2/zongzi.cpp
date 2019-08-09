@@ -1,166 +1,133 @@
 #include <cstdio>
 #include <iostream>
+#include "Stack.h"
+#include <limits.h>
 
-template <typename T> class Stack {
-private:
-	int _size,  _capacity;
-	T* _elem;
-public:
-	~Stack() { delete[] _elem; }
-	Stack ( int c );
-	void push ( const T& );
-	int size() { return _size; }
-	T& top();
-	T& pop();
-};
-
-template <typename T> Stack<T>::Stack ( int c ) {
-	_size = 0, _capacity = c;
-	_elem = new T[_capacity];
-	for ( int i = 0; i != _capacity; ++i )
-		_elem[i] = 0;
-}
-
-
-template <typename T> void Stack<T>::push ( const T& e ) {
-	_elem[_size++] = e;
-}
-
-template <typename T> T& Stack<T>::pop() {
-	if ( _size-- ) {
-		return _elem[_size];
-	}
-}
-
-template <typename T> T& Stack<T>::top() {
-	if ( _size ) 
-		return _elem[_size - 1];
-}
 
 struct Edge {
 	int v;
-	bool visited = false;
 	Edge* next = nullptr;
 	Edge() {}
 	Edge ( int w ) : v ( w ) {}
 };
 
 struct Vertex {
-	bool visited, discovered, reach;
-	int price;
+	bool visited;
+	int price,outDegree, c;
+	int minCost, maxPrice;
 	Edge* next;
 	Edge* e;
 	Vertex () {
-		visited = discovered = reach = false;
-		price = 0;
+		visited = false;
+		price = outDegree = c = 0;
+		minCost = INT_MAX; maxPrice = INT_MIN;
 		next = nullptr;
 		Edge* e = next;
-		while ( e ) { e -> visited = false; e =  e -> next; }
 	}
 	Edge* nextEdge() {
-		e = next;
-		while ( e && e -> visited ) 
-			e = e -> next;
-		if ( e )e -> visited = true;
-		return e;
+		if ( outDegree ) {
+			e = next;
+			for ( int i = 1; i != c; ++i )
+				e = e -> next;
+			--c;
+			if ( !c ) c += outDegree;
+			return e;
+		}
 	}
-};
-
-struct node {
-	int v;
-	int back = 0;
-	node() {};
-	node ( int v1, int b ) : v ( v1 ), back ( b ) {}
-};
-
-int solve ( Vertex*, int );
-void max ( node*, Vertex*, int&, int, int );
-
-int main() {
-	//freopen ( "2.in", "r", stdin );
-	int n, m;
-	scanf ( "%d%d", &n, &m );
-	Vertex* city = new Vertex[n + 1];
-	for ( int i = 1; i != n + 1; ++i )
-		scanf ( "%d", &city[i].price );
-	for ( int i = 0; i != m; ++i ) {
-		int u, v;
-		scanf ( "%d%d", &u, &v );
-		Edge* e =  city[u].next;
-		if ( e ) {
+	void insertE ( int  v ) {
+		if ( outDegree ) {
+			Edge* e = next;
+			for ( int i = 0; i != outDegree; ++i ) {
+				if ( e -> v == v ) return;
+				e = e -> next;
+			}
+			e = next;
 			while ( e -> next ) e = e -> next;
 			e -> next = new Edge ( v );
 		}
 		else {
-			Edge* & firstE = city[u].next;
-			firstE = new Edge ( v );
+			next = new Edge ( v );
 		}
+		++outDegree;
+		c = outDegree;
 	}
-	//////测试语段
-	// for ( int i = 1; i != n + 1; ++i ) {
-	// 	std::cout << i << "->";
-	// 	Edge* e;
-	// 	while ( e = city[i].nextEdge() )
-	// 		std::cout << e -> v << " ";
-	// 	std::cout << std::endl;
-	// }
+};
 
-	printf ( "%d\n", solve ( city, n + 1 ) );
+int min ( const int& a, const int& b ) { return ( a < b ? a : b ); }
+int max ( const int& a, const int& b ) { return ( a > b ? a : b ); }
+
+int solve ( Vertex*, Vertex*, int );
+
+int main() {
+	//freopen ( "2.in", "r", stdin);
+	int n, m;
+	scanf ( "%d%d", &n, &m );
+	Vertex* city = new Vertex[n + 1];
+	Vertex* city_ = new Vertex[n + 1];
+	for ( int i = 1; i != n + 1; ++i ) {
+		scanf ( "%d", &city[i].price );
+		city_[i].price = city[i].price;
+	}
+	for ( int i = 0; i != m; ++i ) {
+		int u, v;
+		scanf ( "%d%d", &u, &v );
+		city[u].insertE ( v );
+		city_[v].insertE ( u );
+	}
+	printf ( "%d\n", solve ( city, city_, n ) );
 	return 0;
 }
 
-int solve ( Vertex* v, int n ) {
+int solve ( Vertex* city, Vertex* city_, int n ) {
 	int result = 0;
-	node* path = new node[n];
-	int step = 0;
-	path[step] = node ( 1, 0 ); //path用来存储当前路径
-	Edge* e = v[1].next;
-	v[1].discovered = true;
-	Stack<int> s ( n );
+	city[1].minCost = city[1].maxPrice = city[1].price;
+	Stack<int> s ( 5 * n );
 	s.push ( 1 );
+	city[1].visited = true;
 	while ( s.size() ) {
 		Edge* e;
-		while ( e = v[s.top()].nextEdge() ) {
-			if ( !v[e -> v].discovered ) {
-				v[e -> v].discovered = true;
-				s.push ( e -> v );
-				path[++step] = node ( e -> v, 0 );
-				if ( e -> v == n - 1 )
-					max ( path, v, result, step, n );
+		int count = 0;
+		while ( e = city[s.top()].nextEdge() ) {
+			if ( city[e -> v].minCost > city[s.top()].minCost ) {
+				city[e -> v].minCost = min ( city[s.top()].minCost, city[e -> v].price );
+				s.push ( e -> v ), count = 0;
 			}
-			else if ( v[e -> v].discovered ) {
-				if ( !v[e -> v].visited ) {
-					path[step].back = e -> v;
-					if ( v[e -> v].reach )
-						max ( path, v, result, step, n );
+			else {
+				++count;
+				if ( count == city[s.top()].outDegree + 1 ) break;
+			}
+		}
+		city[s.top()].visited = true;
+		s.pop();
+		int c = 0;
+	}
+	
+	if ( city[n].minCost != INT_MAX ) {
+		s.push ( n );
+		city_[n].visited = true;
+		city_[n].minCost = city_[n].maxPrice = city_[n].price;
+		while ( s.size() ) {
+			Edge* e;
+			int count = 0;
+			while ( e = city_[s.top()].nextEdge() ) {
+				if ( city_[e -> v].maxPrice < city_[s.top()].maxPrice ) {
+					city_[e -> v].maxPrice = max ( city_[s.top()].maxPrice, city_[e -> v].price );
+					s.push ( e -> v ), count = 0;
+				}
+				else {
+					++count;
+					if ( count == city_[s.top()].outDegree + 1 ) break;
 				}
 			}
+			city_[s.top()].visited = true;
+			s.pop();
+			int c = 0;
 		}
-		v[s.top()].visited = true;
-		s.pop(), --step;
+		for ( int i = 1; i != n + 1; ++i ) 
+			if ( city[i].visited && city_[i].visited )
+				result = max ( city_[i].maxPrice - city[i].minCost, result );
+		return result;
 	}
-	max ( path, v, result, step, n );
-	return result;
+	else return 0;
 }
 
-void max ( node* path, Vertex* v, int& r , int step, int n ) {
-	int result = 0, profit = 0;
-	node* p = new node[step + 1];
-	for ( int i = 0; i != step + 1; ++i ) {
-		v[path[i].v].reach = true, p[i] = path[i];
-	}
-	int count = 0, reach = false;
-	for ( int cur = 1, pre = 0; cur != step + 1; ) {
-		profit += ( v[p[cur].v].price - v[p[pre].v].price );
-		pre = cur;
-		if ( profit < 0 ) profit = 0;
-		if ( profit > result ) result = profit;
-		if ( p[cur].back ) {
-			int&b = p[cur].back;
-			while( p[--cur].v != b );
-			b = 0;
-		}
-		else ++cur;
-	}
-	if ( result > r ) r = result;
-}
