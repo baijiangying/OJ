@@ -1,83 +1,109 @@
 #ifndef SET_H
 #define SET_H
 
-class Set {
-private:
-	long long* _elem;
-	long long prime[19] = { 101, 211, 433, 877,
-					1619,3460,6841,12659,
-					21121,45461,90217,187433,
-					253433,427433,568433,639433,
-					756433, 997433 };
-	long long _size = 0;
-	long long _capacity = 433;
-	inline long long hash ( long long key, int i );
-	inline long long rehash ( long long key );
+#define Default 123433
+#define P 1e20 + 7
 
-public:
-	Set ( long long c );
-	~Set() { delete _elem; }
-	bool inSet ( long long key );
-	bool push ( long long key );
-	bool pop ( long long key );
+// const int prime[] = {
+// 	52433, 123433, 243433, 463433, 999433
+// };
+
+template <typename T> struct Entry {
+	T data;
+	Entry<T>* next;
+	Entry ( T e ) { data = e; next = nullptr; }
 };
 
-Set::Set ( long long c ) {
-	for ( long long i = 0; i != 18; ++i ) {
-		if ( ( _capacity = prime[i] ) > ( c << 1 ) ) break;
+template <typename T> class Set {
+private:
+	int _capacity, _size;
+	Entry<T>** _elem;
+	int hash ( T );
+	bool deleteNext ( Entry<T>* e );
+public:
+	Set();
+	~Set();
+	int size() { return _size; }
+	bool push ( const T& key );
+	bool pop ( const T& key );
+	bool inSet ( const T& key );
+};
+
+template <typename T> Set<T>::Set() {
+	_capacity = Default; _size = 0;
+	_elem = new Entry<T>*[_capacity];
+	for ( int i = 0; i != _capacity; ++i )
+		_elem[i] = 0;
+}
+
+template <typename T> Set<T>::~Set() {
+	for ( int i = 0; i != _capacity; ++i ) {
+		if ( _elem[i] ) {
+			while ( deleteNext ( _elem[i] ) );
+			delete _elem[i];
+		}
 	}
-	_elem = new long long[_capacity];
-	for ( long long i = 0; i != _capacity; ++i ) 
-		_elem[i] = -2;
+	delete[] _elem;
 }
 
-inline long long Set::hash ( long long key, int i ) {
-	long long r = ( ( ( 2 * key + 123433 ) % _capacity ) +
-					i ) % _capacity;
-	return r;
+template <typename T> int Set<T>::hash ( T key ) {
+	if ( key < 0 ) key += P;
+	return ( key % _capacity * 3 + 65423 ) % _capacity; 	
 }
 
-inline long long Set::rehash ( long long key ) {
-	long long r = ( 3 * key + 433 ) % _capacity;
-	return r;
-}
-
-bool Set::inSet ( long long key ) {
-	for( int i = 0; ; ++i ) {
-		long long r = hash ( key, i );
-		if ( _elem[r] == -2 ) return false;
-		else if ( _elem[r] == key ) return true;
+template <typename T> bool Set<T>::deleteNext ( Entry<T>* e ) {
+	if ( e -> next ) {
+		Entry<T>* p = e -> next;
+		e -> next  = p -> next;
+		delete p;
+		return true;
 	}
+	return false;
 }
 
-bool Set::push ( long long key ) {
-	for ( int i = 0; ; ++i ) {
-		long long r = hash ( key, i );
-		if ( _elem[r] == -2 || _elem[r] == -1 ) {
-			_elem[r] = key;
+template <typename T> bool Set<T>::push ( const T& key ) {
+	int r = hash ( key );
+	if ( !_elem[r] ) {
+		_elem[r] = new Entry<T> ( key );
+		++_size;
+		return true;
+	}
+	else {
+		Entry<T>* e = _elem[r];
+		while ( e -> data != key && e -> next ) e = e -> next;
+		if ( !e -> next && e -> data != key ) {
+			e -> next  = new Entry<T> ( key );
+			++_size;
 			return true;
-		}
-		else if ( _elem[r] == key ) 
-			return false;
-		for ( int j = 0; j != i; ++j ) {
-			if ( r == hash ( key, j ) )
-				std::cout << "Big Error! BIG TROUBLE!!!" << std::endl;
-		}
+		} 
 	}
+	return false;
 }
 
-bool Set::pop ( long long key ) {
-	for ( int i = 0; ; ++i ) {
-		long long r = hash ( key, i );
-		if ( _elem[r] == -2 ) 
-			return false;
-		else if ( _elem[r] == key ) {
-			_elem[r] = -1;
-			return true;
-		}
+template <typename T> bool Set<T>::pop ( const T& key ) {
+	int r = hash ( key );
+	if ( _elem[r] && _elem[r] -> data == key ) {
+		Entry<T>* e = _elem[r];
+		_elem[r] = e -> next;
+		delete e;
+		--_size;
+		return true;
 	}
+	else if ( _elem[r] ) {
+		Entry<T>* e = _elem[r];
+		while ( e -> next && e -> next -> data != key ) 
+			e = e -> next;
+		if ( e -> next ) { deleteNext ( e ); return true; }
+	}
+	return false;
 }
 
+template <typename T> bool Set<T>::inSet ( const T& key ) {
+	int r = hash ( key );
+	Entry<T>* e = _elem[r];
+	while ( e && e -> data != key ) e = e -> next;
+	return e; 
+}
 
 
 #endif
