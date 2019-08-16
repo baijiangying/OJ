@@ -1,5 +1,4 @@
 #include <cstdio>
-#include <iostream>
 
 int minCycleLength ( char*, int );
 bool checkCycle ( char*, int, int, int );
