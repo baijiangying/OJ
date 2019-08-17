@@ -38,13 +38,13 @@ template <typename T> Stack<T>::Stack() {
 
 
 template <typename T> void Stack<T>::push ( const T& e ) {
-	//expand();
+	expand();
 	_elem[_size++] = e;
 }
 
 template <typename T> T& Stack<T>::pop() {
-	if ( _size-- ) {
-		return _elem[_size];
+	if ( _size ) {
+		return _elem[--_size];
 	}
 }
 

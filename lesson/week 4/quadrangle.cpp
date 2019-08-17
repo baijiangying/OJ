@@ -3,37 +3,63 @@
 #include "Stack.h"
 
 struct Point {
-	long long x;
-	long long y;
+	double x;
+	double y;
+	Point operator- ( Point q ) {
+		Point p { x - q.x, y - q.y };
+		return p;
+	}
 };
 
+inline double cross(Point a, Point b) {
+	return a.x * b.y - a.y * b.x;
+}
+
 inline bool toLeft ( Point P, Point Q, Point R ) {
-	return ( P.x * Q.y + Q.x * R.y + R.x * P.y -
-			 P.x * R.y - Q.x * P.y - R.x * Q.y ) > 0;
+	return cross ( Q - P, R - Q ) > 0;
+}
+
+inline double area ( Point i, Point j, Point k, Point l ) {
+	return cross ( j - i, l - k );
 }
 
 Point* convexHull ( Point*, int, int& );
 void quickSort ( Point*, int lo, int hi, Point );
 int getPoivot ( Point*, int lo, int hi, Point );
-bool check ( Point*, int, Point );
+double solve ( Point*, int );
 template <typename T> void swap ( T& a, T& b ) { T tmp = a; a = b; b = tmp; }
 
 int main() {
-	int n, m;
+	int n;
 	scanf ( "%d", &n );
 	Point* a = new Point[n];
 	for ( int i = 0; i != n; ++i ) 
-		scanf ( "%lld%lld", &a[i].x, &a[i].y );
-	scanf ( "%d", &m );
-	Point* b = new Point[m];
-	for ( int i = 0; i != m; ++i ) 
-		scanf ( "%lld%lld", &b[i].x, &b[i].y );
-	int count;
-	Point* extremeP = convexHull ( a, n, count );
-	for ( int i = 0; i != m; ++i )
-		printf ( "%d\n", check ( extremeP, count, b[i] ) );
-
+		scanf ( "%lf%lf", &a[i].x, &a[i].y );
+	
+	printf ( "%.3lf\n", solve ( a, n ) );
 	return 0;
+}
+
+double solve ( Point* a, int n ) {
+	int count = 0;
+	Point* p = convexHull ( a, n, count );
+	double maxArea = 0;
+	for ( int i = 0; i != count; ++i ) {
+		int k = ( i + 1 ) % count, l = ( i + 3 ) % count;
+		for ( int j = i + 2 ; j < count; ++j ) {
+			while ( k != j - 1 && 
+				area ( p[i], p[j], p[k], p[l]) < 
+				area ( p[i], p[j], p[k + 1], p[l] ) )
+				++k;
+			while ( l != ( i - 1 + count ) % count &&
+				area ( p[i], p[j], p[k], p[l]) < 
+				area ( p[i], p[j], p[k], p[l + 1] ) )
+				++l;
+			if ( area ( p[i], p[j], p[k], p[l] ) > maxArea )
+				maxArea = area ( p[i], p[j], p[k], p[l] );
+		}
+	}
+	return maxArea / 2;
 }
 
 Point* convexHull ( Point* a, int n, int& count ) {
@@ -64,14 +90,6 @@ Point* convexHull ( Point* a, int n, int& count ) {
 	return extremeP;
 }
 
-bool check ( Point* a, int count, Point b ) {
-	for ( int i = 0; i != count; ++i ) {
-		if ( !toLeft ( a[i], a[ ( i + 1 ) % count], b ) )
-			return false;
-	}
-	return true;
-}
-
 void quickSort ( Point* a, int lo, int hi, Point b ) {
 	if ( lo + 1 < hi ) {
 		int pivot = getPoivot ( a, lo, hi, b );
@@ -93,3 +111,5 @@ int getPoivot ( Point* a, int lo, int hi, Point b ) {
 
 	return pivot;
 }
+
+
